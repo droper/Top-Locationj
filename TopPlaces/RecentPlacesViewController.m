@@ -34,7 +34,7 @@
     //NSLog(@"%@", self.photos);
     NSMutableDictionary *photosByPhotographer = [NSMutableDictionary dictionary];
     for (NSDictionary *photo in self.photos) {
-        //NSLog(@"FOTOOOOOOOOOOOOO  %@", photo);
+        NSLog(@"FOTOOOOOOOOOOOOO  %@", photo);
         NSString *photographer = [photo objectForKey:FLICKR_PHOTO_OWNER];
         NSMutableArray *photos = [photosByPhotographer objectForKey:photographer];
         if (!photos) {
@@ -90,7 +90,7 @@
     //NSLog(@"%@", photos);
     //NSLog(@"%@", self.photosIds);
 
-    NSLog(@"%@", photos);
+    //NSLog(@"%@", photos);
     
     return photos;
 }
@@ -111,7 +111,7 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             self.navigationItem.leftBarButtonItem = sender;
             self.photos = photos;
-            self.photos = [self orderPhotosById];
+            //self.photos = [self orderPhotosById];
         });
     });
     dispatch_release(downloadQueue);
@@ -171,6 +171,15 @@
     return cell;
 }
 
+- (PhotoViewController *)splitViewPhotoviewcontroller
+{
+    id gvc = [self.splitViewController.viewControllers lastObject];
+    if (![gvc isKindOfClass:[PhotoViewController class]])
+    {
+        gvc = nil;
+    }
+    return gvc;
+}
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender
 {    
@@ -184,8 +193,6 @@
     
     //Obtain the photo ids array from defaults
    self.photosIds = [[defaults objectForKey:RECENT_PHOTOS_KEY] mutableCopy];
-
-    NSLog(@"IDS: %@", self.photosIds);
     
     // If there is any photo id, initialize the array
     if (!self.photosIds) self.photosIds = [NSMutableArray array];
@@ -215,6 +222,58 @@
     [defaults synchronize];   
 }
 
-
+- (void) tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    NSLog(@"ENTRE AL VOID");
+    
+    NSIndexPath *path = [self.tableView indexPathForSelectedRow];
+    if([self splitViewPhotoviewcontroller])
+    {
+        NSLog(@"ENTRO AL IF");
+        
+        [self splitViewPhotoviewcontroller].photoUrl =  [FlickrFetcher urlForPhoto:[self.photos objectAtIndex:path.row] format:FlickrPhotoFormatLarge];
+        [self splitViewPhotoviewcontroller].photoTitle = [[self.photos objectAtIndex:path.row] objectForKey:FLICKR_PHOTO_TITLE];
+        
+        NSLog(@"%@", [self splitViewPhotoviewcontroller].photoUrl);
+        
+        
+        NSMutableArray *photos_Ids = [[NSMutableArray array] init];
+        
+        //Create an user defaults object  
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        
+        //Obtain the photo ids array from defaults
+        if ([[defaults objectForKey:RECENT_PHOTOS_KEY] mutableCopy]){
+            photos_Ids = [[defaults objectForKey:RECENT_PHOTOS_KEY] mutableCopy];
+        }
+        
+        
+        
+        //NSLog(@"IDS: %@", photosIds);
+        
+        //Add the photo id
+        //id pid = [[self.photos objectAtIndex:path.row] objectForKey:FLICKR_PHOTO_ID];
+        
+        
+        //If not repeated, add the id to the array
+        /*if(![photosIds containsObject:pid]) {
+         [photosIds addObject:pid];
+         }*/
+        
+        //If not repeated, add the id to the array
+        //if(![photosIds containsObject:[self.photos objectAtIndex:path.row]]) {
+        [photosIds addObject:[self.photos objectAtIndex:path.row]];
+        // }
+        
+        //NSLog(@"photo %@", [self.photos objectAtIndex:path.row]);
+        
+        
+        //NSLog(@"photosids %@", photosIds);
+        
+        //The array is copied into the defaults
+        [defaults setObject:photos_Ids forKey:RECENT_PHOTOS_KEY];
+        [defaults synchronize];  
+    }
+}
 
 @end

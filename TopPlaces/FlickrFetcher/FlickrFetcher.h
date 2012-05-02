@@ -24,7 +24,6 @@
 
 
 
-
 typedef enum {
 	FlickrPhotoFormatSquare = 1,
 	FlickrPhotoFormatLarge = 2,
